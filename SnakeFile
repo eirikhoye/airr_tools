@@ -1,0 +1,100 @@
+import pandas as pd
+
+configfile: "config.yaml"
+
+meta = pd.read_table(config['path_meta']).set_index(config['sample_column'], drop=False)
+#samples = list(meta[meta.productive_rearrangements > 100].index) RE-ADD THIS AND fix the metadata comet
+samples = list(meta.index)
+
+path_data = config['path_data']
+path_results = config['path_results']
+
+rule all:
+    input:
+        expand(path_results+"/hill_div/{sample}_hill.tsv", sample=samples),
+        path_results+"/hill_all.tsv",
+        path_results+"/auc_all.tsv",
+
+rule hill_div:
+    input:
+        meta=path_data+'metadata.txt',
+        rear=path_data+'{sample}.tsv'
+    output:
+        hill_div=path_results+'/hill_div/{sample}_hill.tsv',
+    conda:
+        "envs/Hill_Div.yaml"
+    script:
+        'scripts/Hill_Diversity_v2.R'
+
+rule rarefy_hill:
+    input:
+        meta=path_data+'metadata.txt',
+        rear=path_data+'{sample}.tsv'
+    output:
+        hill_div=path_results+'/rarefy_hill/{sample}_rareHill.tsv'
+    conda:
+        'envs/Hill_Div.yaml'
+    script:
+        'scripts/Hill_Rarefy.R'
+
+
+rule concat_hill:
+    input:
+        in_path=expand(path_results+"/hill_div/{sample}_hill.tsv", sample=samples),
+    output:
+        hill_out=path_results+"/hill_all.tsv",
+        auc_out =path_results+"/auc_all.tsv",
+    conda:
+        "envs/Hill_Div.yaml"
+    script:
+        'scripts/concat_Hill.R'
+
+rule clonal_accumulation:
+    input:
+        expand(config['path_accumulation']+'{sample}.rarefaction.tsv', sample=samples)
+    output:
+
+
+
+
+
+
+#rule public_private:
+#    input:
+
+
+
+
+#rule graph_random
+
+
+#rule morisita_horn:
+#    input:
+#        config['path_combined_rearrangements']
+
+
+
+
+
+
+#rule gliph_format:
+#    input:
+#        rear = '/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data/{sample}.tsv'
+#    output:
+#        cdr3_file = 'data/gliph_data/{sample}_cdr3_file.txt'
+#    shell:
+#        'python scripts/make_gliph2_input_files.py {input.rear} > {output.cdr3_file}'
+
+#rule combine_gliph_files:
+#    input:
+#        cdr3_file = [
+#        "data/gliph_data/LivMet_1_cdr3_file.txt",
+#        "data/gliph_data/LivMet_2_cdr3_file.txt",
+#        "data/gliph_data/LivMet_3_cdr3_file.txt",
+#        "data/gliph_data/LivMet_4_cdr3_file.txt"
+#        ]
+#    output:
+#        combined_cdr3_file = "data/combined_cdr3_file.txt"
+#    shell:
+#        'python scripts/combine_cdr3_files.py {input.cdr3_file} > {output.combined_cdr3_file}'
+

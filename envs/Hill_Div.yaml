@@ -1,0 +1,9 @@
+name: Hill_Div
+channels:
+  - conda-forge
+  - r
+dependencies:
+  - r-tidyverse = 1.2.1
+  - r-alakazam = 1.0.2
+  - r-bolstad2 = 1.0_28
+  - r-ggpubr = 0.4.0

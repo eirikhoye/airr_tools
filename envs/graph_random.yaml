@@ -1,0 +1,7 @@
+name: graph_random
+channels:
+  - conda-forge
+dependencies:
+  - pandas = 1.4.0
+  - numpy = 1.22.2
+  - igraph = 0.9.6

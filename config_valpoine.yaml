@@ -1,0 +1,7 @@
+# path
+path_meta: /Users/eirikhoy/Dropbox/projects/airr_comet/data/valpione_marais_2020/metadata.txt
+path_data: /Users/eirikhoy/Dropbox/projects/airr_comet/data/valpione_marais_2020/
+path_results: results/valpione
+
+# sample colname
+sample_column: sample_name

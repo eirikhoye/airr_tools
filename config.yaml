@@ -1,0 +1,12 @@
+# path
+path_meta: /Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data/metadata.txt
+path_data: /Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data/
+path_results: results/comet
+path_accumulation: /Users/eirikhoy/Dropbox/projects/airr_comet/data/Results_diversity-metrics_2022-03-19_01-21/
+path_combined_rearrangements: /Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data/CombinedRearrangements_ALL_COMET.tsv
+
+# sample colname
+sample_column: Sample
+
+# Compbined rearrangements file
+#combine

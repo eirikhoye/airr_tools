@@ -1,0 +1,7 @@
+# path
+path_meta: /Users/eirikhoy/Dropbox/projects/airr_comet/data/MD_Anderson_NSCLC/metadata.txt
+path_data: /Users/eirikhoy/Dropbox/projects/airr_comet/data/MD_Anderson_NSCLC/
+path_results: results/mda_nsclc
+
+# sample colname
+sample_column: sample_name
