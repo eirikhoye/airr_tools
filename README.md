@@ -1,5 +1,8 @@
 Analysis Pipeline for the paper 
 
+
+
+```
 # First create venv with 
 virtualenv -p /usr/bin/python3.6 venv
 source venv/bin/activate
@@ -17,5 +20,4 @@ export PYSPARK_DRIVER_PYTHON=/home/jcdenton/imnet/venv/bin/python3.6
 
 # run the test
 pyhton test_imnet.py
-
-#
+```
