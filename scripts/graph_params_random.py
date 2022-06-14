@@ -1,11 +1,20 @@
-# random sampling without replacement
-
 import pandas as pd
 import numpy as np
 
-class immunoseq_graph:
+class imnet_graph:
     def __init__(self, immunoseq_data):
         self.immunoseq_data = immunoseq_data
+        self.seq_aa = immunoseq_data[]
+
+    def make_network(self, min_ld, max_ld):
+        self.g = imnet.process_strings.generate_graph(self.seq_aa,
+                                                      min_ld=min_ld, max_ld=max_ld)
+
+
+
+
+
+
 
     def subsample(self, immunoseq_data):
         t = []

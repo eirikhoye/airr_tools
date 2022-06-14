@@ -49,10 +49,29 @@ rule concat_hill:
     script:
         'scripts/concat_Hill.R'
 
-rule clonal_accumulation:
-    input:
-        expand(config['path_accumulation']+'{sample}.rarefaction.tsv', sample=samples)
-    output:
+
+
+
+
+
+
+
+
+
+
+
+#rule clonal_accumulation:
+#    input:
+#        expand(config['path_accumulation']+'{sample}.rarefaction.tsv', sample=samples)
+#    output:
+
+
+
+
+
+
+
+
 
 
 
