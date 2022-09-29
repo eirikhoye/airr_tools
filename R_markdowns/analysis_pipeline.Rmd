@@ -1,0 +1,1369 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r message = FALSE}
+library(alakazam)
+library(tidyverse)
+library(pheatmap)
+library(RColorBrewer)
+library(viridis)
+library(seriation)
+library(ggpubr)
+library(divo)
+library(ggsci)
+library(poweRlaw)
+library(ggbeeswarm)
+library(ggthemes)
+library(wesanderson)
+library(Bolstad2)
+
+```
+
+
+```{r message = FALSE}
+metadata <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data_376276/metadata_v2.txt')
+Rearrangement_all <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/rearrangement_details_kit_376276/RearrangementDetails_06-25-2019_12-33-29_AM.tsv')
+Rearrangement_all <- Rearrangement_all %>% dplyr::select(sample_name, amino_acid, templates, productive_frequency) %>% dplyr::rename('sample_id'=sample_name, 'clone_id'=amino_acid, 'seq_count'=templates, 'seq_freq'=productive_frequency)
+kit1 <- merge(metadata, Rearrangement_all, by.x = 'Sample', by.y = 'sample_id')
+#kit1 <- kit1 %>% dplyr::select(!group_code)
+
+#metadata <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data_12511620/metadata.txt')
+Rearrangement_all <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/rearrangement_details_kit_12511620/RearrangementDetails_07-20-2020_10-27-21_AM.tsv')
+Rearrangement_all <- Rearrangement_all %>% dplyr::select(sample_name, amino_acid, templates, productive_frequency) %>% dplyr::rename('sample_id'=sample_name, 'clone_id'=amino_acid, 'seq_count'=templates, 'seq_freq'=productive_frequency)
+kit2 <- merge(metadata, Rearrangement_all, by.x = 'Sample', by.y = 'sample_id')
+#kit2 <- kit2 %>% dplyr::select(!group_code)
+Rearrangement_all <- bind_rows(kit1, kit2)
+head(Rearrangement_all)
+```
+
+
+Make plot for T cell fraction
+
+```{r message = FALSE}
+a <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/metadata/SampleOverview_Kit_376276.tsv')
+a <- a[, c('sample_name', 'ng/uL')]
+b <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/metadata/Overview_samples_kit_2_v2.tsv')
+b <- b[, c('Sample_ID', 'ng_ul_DNA')]
+colnames(b) <- c('sample_name', 'ng/uL')
+c <- bind_rows(a, b)
+c['uL'] = 32
+c['ng'] = c['ng/uL'] * c['uL']
+c['ng_pr_cell'] = 0.0066
+c['total_genomes'] = c['ng'] / c['ng_pr_cell']
+
+SampleOverview = read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/SampleOverview_10-11-2021_1-47-39_PM.tsv')
+SampleOverview = SampleOverview %>% left_join(c, how='right', on='sample_name')
+SampleOverview['tcell_fraction'] = SampleOverview['productive_templates'] / SampleOverview['total_genomes']
+meta <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/metadata/metadata_all_v2.txt')
+SampleOverview <- meta %>% left_join(SampleOverview, how='right', by=c('subject_id' = 'sample_name'))
+SampleOverview <- SampleOverview %>% mutate('NACT-group' = case_when(group=='no_chemo'~'No-NACT',
+                                                   group=='short_chemo'~'Short-interval',
+                                                   group=='long_chemo'~'Long-interval'))
+SampleOverview$`NACT-group` <- factor(SampleOverview$`NACT-group`, levels=c('No-NACT', 'Short-interval', 'Long-interval'))
+```
+
+```{r message = FALSE}
+same_patient <- c(
+  'LivMet_38', 'LivMet_11', 'LivMet_14', 'LivMet_17',
+  'LivMet_40', 'LivMet_42', 'LivMet_33'
+) 
+SampleOverview <- SampleOverview %>% filter(!subject_id %in% same_patient)
+SampleOverview
+```
+
+```{r message = FALSE}
+SampleOverview %>% filter(group == 'no_chemo')
+
+```
+
+```{r message = FALSE}
+SampleOverview %>% filter(group == 'short_chemo')
+
+```
+
+```{r message = FALSE}
+SampleOverview %>% filter(group == 'long_chemo')
+```
+
+```{r message = FALSE}
+SampleOverview %>% filter(group %in% c('short_chemo', 'long_chemo'))
+```
+
+```{r message = FALSE}
+get_CI_half_width <- function(x, prob) {
+  n <- length(x)
+  z_t <- qt(1 - (1 - prob) / 2, df = n - 1)
+  z_t * sd(x) / sqrt(n)
+}
+
+lower <- function(x, prob = 0.95) {
+  mean(x) - get_CI_half_width(x, prob)
+}
+
+upper <- function(x, prob = 0.95) {
+  mean(x) + get_CI_half_width(x, prob)
+}
+```
+
+Mean number of productive CDR3Beta templates per sample
+```{r}
+templates <- SampleOverview$productive_templates
+
+# mean templates
+paste("Mean templates:", round(mean(templates), 0))
+# lower CI
+paste("Lower 95% CI:  ", round(lower(templates), 0))
+# upper CI
+paste("Upper 95% CI:  ", round(upper(templates), 0))
+# median templates
+paste("Median templates:", round(median(templates), 3))
+```
+
+Mean T cell fraction per sample
+```{r}
+fraction <- SampleOverview$tcell_fraction
+
+# mean fraction
+paste("Mean fraction:", round(mean(fraction), 3))
+# lower CI
+paste("Lower 95% CI: ", round(lower(fraction), 3))
+# upper CI
+paste("Upper 95% CI: ", round(upper(fraction), 3))
+# median fraction
+paste("Median fraction:", round(median(fraction), 3))
+
+
+```
+
+Mean T cell fraction per sample short interval
+```{r}
+fraction <- SampleOverview %>% filter(group == 'short_chemo') %>% pull(tcell_fraction)
+
+# mean fraction
+paste("Mean fraction:", round(mean(fraction), 3))
+# lower CI
+paste("Lower 95% CI: ", round(lower(fraction), 3))
+# upper CI
+paste("Upper 95% CI: ", round(upper(fraction), 3))
+# median fraction
+paste("Median fraction:", round(median(fraction), 3))
+
+```
+
+Mean T cell fraction per sample no chemo
+```{r}
+fraction <- SampleOverview %>% filter(group == 'no_chemo') %>% pull(tcell_fraction)
+
+# mean fraction
+paste("Mean fraction:", round(mean(fraction), 3))
+# lower CI
+paste("Lower 95% CI: ", round(lower(fraction), 3))
+# upper CI
+paste("Upper 95% CI: ", round(upper(fraction), 3))
+# median fraction
+paste("Median fraction:", round(median(fraction), 3))
+
+```
+
+Mean T cell fraction per sample long chemo
+```{r}
+fraction <- SampleOverview %>% filter(group == 'long_chemo') %>% pull(tcell_fraction)
+
+# mean fraction
+print(paste("Mean fraction:", round(mean(fraction), 3)))
+# lower CI
+print(paste("Lower 95% CI: ", round(lower(fraction), 3)))
+# upper CI
+print(paste("Upper 95% CI: ", round(upper(fraction), 3)))
+# median fraction
+paste("Median fraction:", round(median(fraction), 3))
+
+```
+                theme(axis.text.x = element_text(angle=60, hjust=1)
+```{r}
+my_comparisons <- list(c('No-NACT', 'Short-interval'), 
+                       c('No-NACT', 'Long-interval'),
+                       c('Short-interval', 'Long-interval'))
+
+p <- ggviolin(SampleOverview, x='NACT-group', y='tcell_fraction',
+               color='NACT-group', palette='jco',
+               add='dotplot', scale='count')
+
+
+p <- p + stat_compare_means(comparisons = my_comparisons, method='t.test',label.y=c(.45,.75, .6)) +
+  ylab("T cell fraction") + theme_minimal() + 
+  theme(legend.position='none', axis.text.x = element_text(angle=60, hjust=1))
+
+
+ggsave(filename = '/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/tcr_seq_t_fraction.pdf',
+       plot = p, width=4, height=5)
+p
+```
+
+Total unique clones
+```{r message = FALSE}
+comb_rear_all <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/CombinedRearrangements_ALL_COMET.tsv')
+print(paste('Total unique clones:', comb_rear_all %>% pull(`Amino Acid`) %>% length()))
+```
+
+Median (min-max) unique clones
+```{r}
+print(paste("Median unique clones:",SampleOverview$productive_rearrangements %>% median()))
+print(paste("Min unique clones:",SampleOverview$productive_rearrangements %>% min()))
+print(paste("Max unique clones:",SampleOverview$productive_rearrangements %>% max()))
+```
+
+# Metadata
+```{r message = FALSE}
+metadata <- bind_rows(read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data_376276/metadata_v2.txt') %>% dplyr::select(!group_code),
+          read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data_12511620/metadata_v2.txt') %>% dplyr::select(!group_code))
+
+```
+
+```{r message = FALSE}
+kit_1_qc <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/qc_reports/qcReport_kit_1.tsv')
+kit_2_qc <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/qc_reports/qcReport_kit_2.tsv')
+
+qc_report <- bind_rows(kit_1_qc, kit_2_qc)
+coverage <- qc_report %>% select(`Sample Name`, Coverage)
+colnames(coverage) <- c("sample_id", "Coverage")
+coverage
+```
+
+# Read hill diversity and evenness profiles
+```{r message = FALSE}
+# Set path to hill diversity profiles
+path <- '/Users/eirikhoy/dropbox/projects/airr_tools/results/comet/hill_div/'
+list_of_files <- list.files(path = path,
+                            recursive = TRUE,
+                            pattern = "\\.tsv$",
+                            full.names = TRUE)
+
+df <- readr::read_tsv(list_of_files)
+df <- df %>% left_join(metadata[, c("Sample", "COMET_ID")], by=c("sample_id"="Sample")) %>%
+  left_join(coverage)
+
+
+
+### new analysis, exclude coverage < 5 and patient duplicates
+
+duplicate_samples <- c('LivMet_38', 'LivMet_11', 'LivMet_14', 'LivMet_17',
+                       'LivMet_40', 'LivMet_42', 'LivMet_33')
+
+
+df <- df %>% filter(!sample_id %in% duplicate_samples) %>%
+  filter(COMET_ID != 'COMET-0041M1') %>% # remove because NACT-interval data missing
+  filter(Coverage >= 5)
+
+nr_samples <- df$sample_id %>% unique() %>% length()
+
+print(paste("Number of samples after selecting for coverage >= 5:", nr_samples))
+```
+
+```{r}
+annotation <- metadata %>% 
+  filter(group != 'na') %>%
+  dplyr::select(COMET_ID, group) %>%
+  as.data.frame()
+rownames(annotation) <- annotation$COMET_ID
+annotation$COMET_ID <- NULL
+
+diversity_profile <- df %>% 
+  dplyr::select(COMET_ID, q, e) %>%
+  pivot_wider(names_from = COMET_ID, values_from = e) %>%
+  as.data.frame()
+
+rownames(diversity_profile) <- diversity_profile$q
+diversity_profile$q <- NULL
+diversity_profile <- as.matrix(diversity_profile)
+
+nr_categories <- length(unique(annotation$group))
+ann_colors <- list(group = c(no_chemo='#0073C2FF', short_chemo="#EFC000FF", long_chemo="#3B3B3BFF"))
+
+names(ann_colors$group) <- unique(unique(annotation$group))
+
+quantile_breaks <- function(xs, n = 10) {
+  breaks <- quantile(xs, probs = seq(0, 1, length.out = n))
+  breaks[!duplicated(breaks)]
+}
+
+cl_cb <- function(hcl, mat){
+    # Recalculate manhattan distances for reorder method
+    dists <- dist(mat, method = "manhattan")
+
+    # Perform reordering according to OLO method
+    hclust_olo <- reorder(hcl, dists)
+    return(hclust_olo)
+}
+
+```
+
+
+```{r}
+
+diversity_profile_breaks <- quantile_breaks(diversity_profile, n = 10)
+
+pheatmap(diversity_profile, 
+         annotation = annotation, 
+         cluster_rows = TRUE,
+         annotation_colors = ann_colors, 
+         border_color = NA,
+         main = paste('Evenness Profile\n', "n =", nr_samples), 
+         fontsize = 7.5, 
+         color=inferno(length(diversity_profile_breaks) - 1),
+         breaks = diversity_profile_breaks,
+         clustering_callback = cl_cb
+
+         )
+```
+
+```{r}
+diversity_profile_breaks <- quantile_breaks(cor(diversity_profile), n = 10)
+
+pheatmap(cor(diversity_profile), 
+         annotation_col = annotation, 
+         annotation_row = annotation, 
+         annotation_colors = ann_colors, 
+         clustering_distance_cols = "manhattan",
+         clustering_distance_rows = "manhattan",
+         border_color = NA,
+         main = paste('Correlation Map Evenness Profile\n', 'n=', nr_samples), 
+         fontsize = 7.5, 
+         color = inferno(10),
+         #show_rownames = FALSE,
+         #show_colnames = FALSE,
+         
+         #color = inferno(length(diversity_profile_breaks) - 1),
+         #breaks = diversity_profile_breaks
+         )
+```
+
+```{r}
+# reorder clusters according to OLO method
+
+out <- pheatmap(cor(diversity_profile), 
+         annotation_col = annotation, 
+         annotation_row = annotation, 
+         #cluster_rows = TRUE,
+         
+         annotation_colors = ann_colors, 
+         clustering_distance_cols = "manhattan",
+         clustering_distance_rows = "manhattan",
+         main = paste('Correlation Map Evenness Profile\n', 'n=', nr_samples), 
+         fontsize = 7.5, 
+         #color = inferno(length(diversity_profile_breaks) - 1),
+         #breaks = diversity_profile_breaks
+         clustering_callback = cl_cb,
+#         legend=FALSE,
+#         annotation_legend=FALSE,
+         #show_rownames = FALSE,
+         #show_colnames = FALSE,
+         border_color = NA,
+         color = inferno(10)
+         #cutree_rows = 6,
+         #cutree_cols = 6
+         )
+```
+
+# dendrogram with cutoff at h=2.5
+```{r}
+height = 2.5
+
+plot(out$tree_col)
+abline(h=height, col='red', lty=2, lwd=2)
+
+#Cut the row (gene) dendrogram at a Euclidean distance dis-similarity of 8
+d = data.frame(sort(cutree(out$tree_col, h=height)))
+d = tibble(
+  'COMET_ID' = rownames(d),
+  'cluster' = as.character(d[,1])
+)
+t <- d %>% merge(metadata, by.x='COMET_ID', by.y='COMET_ID') %>% dplyr::select(group, cluster)# %>% filter(cluster != 6)
+write_tsv(d %>% left_join(metadata %>% dplyr::select(c(Sample, COMET_ID)), by='COMET_ID'), file='/Users/eirikhoy/dropbox/Manuscript_ImmunoSEQ_COMET/supplementary_files/results/hill_even_clust_dist_3.tsv')
+#t$group[t$group == 'long_chemo'] <- 'yes'
+#t$group[t$group == 'short_chemo'] <- 'yes'
+#t$group[t$group == 'no_chemo'] <- 'no'
+```
+# Fisher's Exact Test for Count Data
+```{r}
+t <- table(t)
+print(t)
+#chisq <- chisq.test(t, simulate.p.value = FALSE, B=10000)
+#print(chisq)
+fish <- fisher.test(t)
+print(fish)
+```
+
+```{r message = FALSE}
+get_CI_half_width <- function(x, prob) {
+  n <- length(x)
+  z_t <- qt(1 - (1 - prob) / 2, df = n - 1)
+  z_t * sd(x) / sqrt(n)
+}
+
+lower <- function(x, prob = 0.95) {
+  mean(x) - get_CI_half_width(x, prob)
+}
+
+upper <- function(x, prob = 0.95) {
+  mean(x) + get_CI_half_width(x, prob)
+}
+
+no_chemo_ <- df %>% 
+  merge(metadata, by.x = 'COMET_ID', by.y = 'COMET_ID') %>% 
+  as_tibble() %>% filter(group == 'no_chemo') %>%
+  group_by(q) %>% summarize_at(vars(c('d','e')), funs(mean, sd, min, max, lower, upper)) %>%
+  mutate(group='no_chemo')
+
+short_chemo_ <- df %>% 
+  merge(metadata, by.x = 'COMET_ID', by.y = 'COMET_ID') %>% 
+  as_tibble() %>% filter(group == 'short_chemo') %>%
+  group_by(q) %>% summarize_at(vars(c('d','e')), funs(mean, sd, min, max, lower, upper)) %>%
+  mutate(group='short_chemo')
+
+long_chemo_ <- df %>% 
+  merge(metadata, by.x = 'COMET_ID', by.y = 'COMET_ID') %>% 
+  as_tibble() %>% filter(group == 'long_chemo') %>%
+  group_by(q) %>% summarize_at(vars(c('d','e')), funs(mean, sd, min, max, lower, upper)) %>%
+  mutate(group='long_chemo')
+
+df_hill <- bind_rows(bind_rows(no_chemo_, short_chemo_), long_chemo_) %>%
+  mutate(group = factor(group, levels=c("no_chemo", "short_chemo", "long_chemo")))
+
+```
+
+```{r}
+p1 <- df_hill %>%
+  mutate(`NACT-group` = case_when(
+    group == 'no_chemo' ~ 'No-NACT',
+    group == 'short_chemo' ~ 'Short-interval',
+    group == 'long_chemo' ~ 'Long-interval'
+  )) %>%
+  mutate(`NACT-group` = factor(`NACT-group`, levels = c('No-NACT', 'Short-interval', 'Long-interval'))) %>%
+  ggplot(aes(x=q, y=d_mean, group=`NACT-group`, color=`NACT-group`)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = d_lower, ymax = d_upper, fill=`NACT-group`), alpha = 0.1, color=NA) +
+  theme_classic() +
+  xlab(expression(alpha)) + ylab('Hill diversity') + 
+  theme(axis.title.x = element_text(face='italic')) +
+  scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)) + theme(legend.title = element_blank())
+
+p1 <- set_palette(p1, 'jco')
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/hill_div_prof.pdf',
+       plot=p1,
+       width=6, height=4)
+
+
+p1
+```
+
+Species richness all NACT groups
+```{r}
+species_richness_all <- df %>% merge(metadata, by.x = 'COMET_ID', by.y = 'COMET_ID') %>% filter(q == 0.0) %>% pull(d)
+print(paste("N =", length(species_richness_all)))
+print(paste("Mean species richness:", round(mean(species_richness_all),0)))
+print(paste("Lower CI species richness:", round(lower(species_richness_all),0)))
+print(paste("Upper CI species richness:", round(upper(species_richness_all),0)))
+
+```
+
+Species richness short-interval NACT group
+```{r}
+species_richness_short_chemo <- df %>% merge(metadata, by.x = 'COMET_ID', by.y = 'COMET_ID') %>% filter(group == 'short_chemo') %>% filter(q == 0.0) %>% pull(d)
+print(paste("N =", length(species_richness_short_chemo)))
+print(paste("Mean species richness:", round(mean(species_richness_short_chemo),0)))
+print(paste("Lower CI species richness:", round(lower(species_richness_short_chemo),0)))
+print(paste("Upper CI species richness:", round(upper(species_richness_short_chemo),0)))
+
+```
+
+Species richness long-interval NACT group
+```{r}
+species_richness_long_chemo <- df %>% merge(metadata, by.x = 'COMET_ID', by.y = 'COMET_ID') %>% filter(group == 'long_chemo') %>% filter(q == 0.0) %>% pull(d)
+print(paste("N =", length(species_richness_long_chemo)))
+print(paste("Mean species richness:", round(mean(species_richness_long_chemo),0)))
+print(paste("Lower CI species richness:", round(lower(species_richness_long_chemo),0)))
+print(paste("Upper CI species richness:", round(upper(species_richness_long_chemo),0)))
+```
+
+Species richness No-NACT group
+```{r}
+species_richness_no_chemo <- df %>% merge(metadata, by.x = 'COMET_ID', by.y = 'COMET_ID') %>% filter(group == 'no_chemo') %>% filter(q == 0.0) %>% pull(d)
+print(paste("N =", length(species_richness_no_chemo)))
+print(paste("Mean species richness:", round(mean(species_richness_no_chemo),0)))
+print(paste("Lower CI species richness:", round(lower(species_richness_no_chemo),0)))
+print(paste("Upper CI species richness:", round(upper(species_richness_no_chemo),0)))
+```
+
+
+
+```{r}
+p2 <- df_hill %>%
+  ggplot(aes(x=q, y=e_mean, group=group, color=group)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = e_lower, ymax = e_upper, fill=group), alpha = 0.1, color=NA) +
+  theme_classic() +
+  xlab(expression(alpha)) + ylab('Hill evenness') + 
+  theme(axis.title.x = element_text(face='italic')) +
+  scale_x_continuous(breaks=c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+
+p2 <- set_palette(p2, 'jco')
+p2
+```
+
+```{r}
+leg <- get_legend(p1)
+p3 <- ggarrange(p1, p2, ncol=2, nrow=1,
+          legend.grob = leg, 
+          legend='right')
+ggsave(filename = '/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/hill_div_even.pdf',
+       plot = p3, width = 9, height=3)
+```
+
+### Comparison of Evenness profiles and AUC
+
+```{r}
+
+samples <- unique(df$COMET_ID)
+
+hill_auc <- matrix(ncol=1, nrow=0)
+#rownames(even_auc) <- samples
+
+for (i in samples){
+  x <- df %>% filter(COMET_ID == i) %>% pull(q)
+  y <- df %>% filter(COMET_ID == i) %>% pull(e)
+  auc <- sintegral(x, y)$int
+  hill_auc[i] <- auc
+}
+
+hill_auc <- data.frame(hill_auc)
+hill_auc['COMET_ID'] <- rownames(hill_auc)
+hill_auc <- as_tibble(hill_auc)
+hill_auc <- hill_auc %>% merge(metadata, by.x = 'COMET_ID', by.y = 'COMET_ID') %>% as_tibble()
+hill_auc <- hill_auc %>% filter(group != 'na')
+hill_auc <- hill_auc %>% filter(!Sample %in% duplicate_samples)
+hill_auc$group <- factor(hill_auc$group, levels=c('no_chemo', 'short_chemo', 'long_chemo'))
+hill_auc <- left_join(x=hill_auc, y=qc_report, by=c("Sample" = "Sample Name")) 
+```
+
+Species richness dependence on coverage
+```{r}
+# lm species richness versus coverage
+lm.fit <- df %>% merge(metadata, by.x = 'COMET_ID', by.y = 'COMET_ID') %>% filter(q == 0.0) %>%
+  lm(.$d ~ .$Coverage, data=.)
+summary(lm.fit)
+confint(lm.fit, level=0.95)
+
+```
+
+```{r}
+# plot species richness versus coverage
+df %>% merge(metadata, by.x = 'COMET_ID', by.y = 'COMET_ID') %>% filter(q == 0.0) %>%
+  ggplot(aes(x=Coverage, y=d)) + 
+  geom_point() +
+  geom_smooth(method='lm', color='red') + 
+  theme_minimal() +
+  ylab("Species Richness") + xlab("Coverage")
+  
+```
+Species richness is significantly associated with coverage
+
+
+
+AUC evenness profile dependence on coverage 
+```{r}
+# lm hill evenness auc versus coverage
+lm.fit <- lm(hill_auc ~ Coverage, data=hill_auc)
+summary(lm.fit)
+confint(lm.fit, level=0.95)
+
+```
+
+```{r}
+# plot hill evenness auc versus coverage
+p <- hill_auc %>%
+  ggplot(aes(x=Coverage, y=hill_auc)) +
+  geom_point() + geom_vline(xintercept = 5, linetype = 'dotted', color='red', size=1.5) +
+  geom_smooth(method='lm', color='red')
+
+hill_auc <- hill_auc %>% filter(Coverage >= 5)
+
+hill_auc <- hill_auc %>% mutate("NACT-group" = factor(case_when(group == 'no_chemo' ~ 'No-NACT',
+                                                 group == 'short_chemo' ~ 'Short-interval',
+                                                 group == 'long_chemo' ~ 'Long-interval'),
+                                                 levels=c('No-NACT', 'Short-interval', 'Long-interval')))
+
+hill_auc['AUC_group'] <- cut(hill_auc$hill_auc, 3, labels=FALSE)
+hill_auc <- hill_auc %>% mutate(Clonality = 10 - hill_auc)
+
+p
+
+```
+There was no significant association between area under the curve of hill evenness profiles and coverage
+
+```{r}
+library(ggpubr)
+
+my_comparisons <- list(c('No-NACT', 'Short-interval'), 
+                       c('No-NACT', 'Long-interval'),
+                       c('Short-interval', 'Long-interval'))
+
+p <- ggboxplot(hill_auc, x='NACT-group', y='hill_auc',
+               color='NACT-group', palette='jco',
+               add='jitter')
+
+p + stat_compare_means(comparisons = my_comparisons, method='t.test') +
+  ylab("AUC evenness profile") + xlab("") + theme_minimal() + 
+  theme(axis.text.x = element_text(angle=60, hjust=1), 
+        legend.position='none')
+
+```
+
+```{r}
+library(ggpubr)
+
+
+my_comparisons <- list(c('No-NACT', 'Short-interval'), 
+                       c('No-NACT', 'Long-interval'),
+                       c('Short-interval', 'Long-interval'))
+
+p <- ggboxplot(hill_auc, x='NACT-group', y='Clonality',
+               color='NACT-group', palette='jco',
+               add='jitter')
+
+p <- p + stat_compare_means(comparisons = my_comparisons, method='t.test',
+                            aes(label = paste0("p = ", ..p.format..))) +
+  ylab("Clonality") + xlab("") + theme_minimal() + 
+  theme(axis.text.x = element_text(angle=60, hjust=1), 
+        legend.position='none')
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/Clonality_AUC.pdf',
+       plot=p,
+       width=3, height=6)
+
+p
+```
+
+```{r}
+compare_means(Clonality ~ group, data=hill_auc,
+              method='t.test',
+              p.adjust.method = 'fdr')
+```
+
+```{r}
+hill_auc
+```
+
+
+Comparison of pCRC sidedness
+----------------------------
+```{r}
+library(ggpubr)
+
+sidedness <- readxl::read_xlsx('/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/tables/metadata.xlsx') %>% select(Sample, pCRC_Location)
+hill_auc_with_sidedness <- hill_auc %>% left_join(sidedness) %>% 
+  filter(!pCRC_Location %in% c("na")) %>%
+  mutate(pCRC_Location = case_when(
+    pCRC_Location == "right_colon" ~ "Right Side",
+    pCRC_Location == "left_colon" ~ "Left Side",
+    pCRC_Location == "rectum" ~ "Rectum",
+    pCRC_Location == "transverse_colon" ~ "Left Side"
+  )) %>%
+  mutate(pCRC_Location = factor(pCRC_Location, levels = c("Right Side", "Left Side", "Rectum")))
+
+
+my_comparisons <- list(c('Left Side', 'Right Side'), 
+                       c('Left Side', 'Rectum'),
+                       c('Right Side', 'Rectum'))
+
+p <- ggboxplot(hill_auc_with_sidedness, x='pCRC_Location', y='Clonality',
+               color='pCRC_Location', #palette='jco',
+               add='jitter')
+
+p <- p + stat_compare_means(comparisons = my_comparisons, method='t.test',
+                            aes(label = paste0("p = ", ..p.format..))) +
+  ylab("Clonality") + xlab("") + theme_minimal() + 
+  theme(axis.text.x = element_text(angle=60, hjust=1), 
+        legend.position='none')
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/Clonality_AUC_pcrc_sidedness.pdf',
+       plot=p,
+       width=3, height=6)
+
+p
+```
+
+```{r}
+sidedness$pCRC_Location
+```
+
+
+
+
+
+
+
+Species richness all NACT groups
+--------------------------------
+```{r}
+clonality_all <- hill_auc %>% pull(Clonality)
+print(paste("N =", length(clonality_all)))
+print(paste("Mean Clonality:", round(mean(clonality_all),1)))
+print(paste("Lower CI Clonality:", round(lower(clonality_all),1)))
+print(paste("Upper CI Clonality:", round(upper(clonality_all),1)))
+
+```
+
+Species richness short-interval NACT group
+------------------------------------------
+```{r}
+clonality_short_chemo <- hill_auc %>% filter(group == 'short_chemo') %>% pull(Clonality)
+print(paste("N =", length(clonality_short_chemo)))
+print(paste("Mean Clonality:", round(mean(clonality_short_chemo),1)))
+print(paste("Lower CI Clonality:", round(lower(clonality_short_chemo),1)))
+print(paste("Upper CI Clonality:", round(upper(clonality_short_chemo),1)))
+
+```
+
+Species richness long-interval NACT group
+-----------------------------------------
+```{r}
+clonality_long_chemo <- hill_auc %>% filter(group == 'long_chemo') %>% pull(Clonality)
+print(paste("N =", length(clonality_long_chemo)))
+print(paste("Mean Clonality:", round(mean(clonality_long_chemo),1)))
+print(paste("Lower CI Clonality:", round(lower(clonality_long_chemo),1)))
+print(paste("Upper CI Clonality:", round(upper(clonality_long_chemo),1)))
+
+```
+
+Species richness No-NACT group
+------------------------------
+```{r}
+clonality_no_chemo <- hill_auc %>% filter(group == 'no_chemo') %>% pull(Clonality)
+print(paste("N =", length(clonality_no_chemo)))
+print(paste("Mean Clonality:", round(mean(clonality_no_chemo),1)))
+print(paste("Lower CI Clonality:", round(lower(clonality_no_chemo),1)))
+print(paste("Upper CI Clonality:", round(upper(clonality_no_chemo),1)))
+
+```
+
+
+```{r}
+lm.fit <- left_join(hill_auc, Rearrangement_all %>% group_by(COMET_ID) %>% 
+                        mutate(nr_tcells = sum(seq_count)) %>% 
+                        dplyr::select(COMET_ID, nr_tcells) %>% distinct()) %>%
+  lm(Clonality ~ nr_tcells, data=.)
+summary(lm.fit)
+confint(lm.fit, level=0.95)
+
+```
+
+
+```{r}
+library(scales)
+p <- left_join(hill_auc, Rearrangement_all %>% group_by(COMET_ID) %>% 
+                        mutate(nr_tcells = sum(seq_count)) %>% 
+                        dplyr::select(COMET_ID, nr_tcells) %>% distinct()) %>%
+  ggplot(aes(x=nr_tcells, y=Clonality)) +
+  geom_point() +
+  geom_smooth(method='lm', color='red') +
+  theme_minimal() +
+  ylab("Clonality") + xlab("Number of T cells") +
+  scale_x_continuous(labels = comma)
+
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/lm_clonality_nr_t_cells.pdf',
+       plot=p,
+       width=5, height=5)
+p
+
+```
+
+```{r}
+meta1 <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data_376276/metadata.txt') %>% dplyr::select(-group_code)
+meta2 <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data_12511620/metadata.txt') %>% dplyr::select(-group_code)
+metadata <- bind_rows(meta1, meta2)
+no_chemo_names <- metadata %>% filter(group == 'no_chemo') %>% pull(Sample)
+short_chemo_names <- metadata %>% filter(group == 'short_chemo') %>% pull(Sample)
+long_chemo_names <- metadata %>% filter(group == 'long_chemo') %>% pull(Sample)
+comb_rear_all <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/CombinedRearrangements_ALL_COMET.tsv')
+columns <- colnames(comb_rear_all[, 4:ncol(comb_rear_all)])
+columns <- columns[1:(length(columns)-2)]
+df_ <- data.frame(
+  'Sample' = columns
+)
+columns <- df_ %>% left_join(metadata) %>% pull(COMET_ID)
+colnames(comb_rear_all) <- c("Amino Acid", "Sum (Templates)", "Present In", columns, "Negative", "Positive")
+comb_rear_all
+```
+
+
+
+
+```{r}
+public_private <- comb_rear_all %>% 
+  mutate(public_private = case_when(`Present In` == 1 ~ "Private",
+                                    `Present In` > 1 ~ "Public")) %>%
+  dplyr::select(`Amino Acid`, `Sum (Templates)`, `Present In`, public_private)
+public_private
+```
+
+Fraction public versus private clones
+```{r}
+nr_private <- public_private %>% filter(public_private == 'Private') %>% pull(public_private) %>% length()
+nr_public <- public_private %>% filter(public_private == 'Public') %>% pull(public_private) %>% length()
+total_clones <- nr_private + nr_public
+fraction_private <- nr_private / total_clones
+fraction_public <- nr_public / total_clones
+
+
+print(paste("Public Clones:", nr_public))
+print(paste("Fraction Public:", fraction_public))
+print(paste("Private Clones:", nr_private))
+print(paste("Fraction Private:", fraction_private))
+
+df_public_private <- data.frame(
+  "type" = c("Private", "Public"),
+  "Percentage" = c(fraction_private*100, fraction_public*100)
+  #"Private" = fraction_private,
+  #"Public" = fraction_public
+)
+df_public_private$type <- factor(df_public_private$type, levels=c("Public", "Private"))
+```
+
+```{r}
+
+p <- df_public_private %>% 
+  ggplot(aes(x=type, y=Percentage, fill=type)) + 
+  scale_fill_jama() +#values=c("#E7B800", "#FC4E07")) +
+  geom_col(color='black') + 
+  theme_classic() + xlab("") +
+  scale_y_continuous(name="% of Total Clonltypes", limits=c(0, 100), breaks=seq(0, 100, 25)) +
+  theme(legend.position="none")
+  
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/public_vs_private_percentage.pdf',
+       plot=p,
+       width=1.5, height=4)
+p
+  
+```
+
+```{r fig.height=6, fig.width=16}
+x <- as.data.frame(comb_rear_all %>% dplyr::select(!c("Positive", "Negative")))
+rownames(x) <- x$`Amino Acid`
+x <- x[, 4:(ncol(x))]
+result <- mh(x, PlugIn = TRUE, graph=TRUE)
+```
+### Comparison of similarity of samples from the same patient.
+
+
+```{r}
+same_patient <- c("LivMet_16", "LivMet_17", "LivMet_32", "LivMet_33", "LivMet_3",  "LivMet_42", 
+                  "LivMet_2",  "LivMet_40", "LivMet_38", "LivMet_5",  "LivMet_13", "LivMet_14")
+same_patient <- c("COMET-0026M1", "COMET-0026M2", 
+                  "COMET-0032M1", "COMET-0032M2", 
+                  "COMET-0062M1",  "COMET-0062M2", 
+                  "COMET-0059M1_1",  "COMET-0059M1_2", 
+                  "COMET-0035M1_1", "COMET-0035M1_2",  
+                  "COMET-0011M1_1", "COMET-0011M1_2",
+                  "COMET-0030M1","COMET-0030M2")
+```
+
+```{r}
+mh_same_patient <- result$PlugIn[same_patient, same_patient]
+pheatmap(mh_same_patient, cluster_rows = FALSE, cluster_cols = FALSE)
+```
+
+```{r message = FALSE}
+same_patient_cols <- c("COMET-0026M1", "COMET-0032M1", "COMET-0062M1", "COMET-0059M1_1", "COMET-0035M1_1", "COMET-0011M1_1", "COMET-0030M1")
+same_patient_rows <- c("COMET-0026M2", "COMET-0032M2", "COMET-0062M2", "COMET-0059M1_2", "COMET-0035M1_2", "COMET-0011M1_2", "COMET-0030M2")
+
+same_patient_mh <- c(
+  mh_same_patient["COMET-0026M2",  "COMET-0026M1"],
+  mh_same_patient["COMET-0032M2",  "COMET-0032M1"],
+  mh_same_patient["COMET-0062M2",  "COMET-0062M1"],
+  mh_same_patient["COMET-0030M2",  "COMET-0030M1"],
+  mh_same_patient["COMET-0059M1_2","COMET-0059M1_1"],
+  mh_same_patient["COMET-0035M1_2","COMET-0035M1_1"],
+  mh_same_patient["COMET-0011M1_1","COMET-0011M1_2"])
+
+mh_same_vs_diff_df <- data.frame(
+  'mh_val' = same_patient_mh
+)
+mh_same_vs_diff_df['type'] <- c('Same Patient Different Metastasis',
+                                'Same Patient Different Metastasis',
+                                'Same Patient Different Metastasis',
+                                'Same Patient Different Metastasis',
+                                'Same Patient Same Metastasis',
+                                'Same Patient Same Metastasis',
+                                'Same Patient Same Metastasis'
+                                )
+
+
+
+non_same <- metadata %>% filter(!COMET_ID %in% same_patient) %>% pull(COMET_ID)
+mh_non_same <- result$PlugIn[non_same, non_same]
+df_ <- data.frame(
+  'mh_val' = mh_non_same[lower.tri(mh_non_same)] )
+df_['type'] <- 'Different Patient'
+df_ <- as_tibble(df_)
+mh_same_vs_diff_df <- as_tibble(mh_same_vs_diff_df)
+mh_same_vs_diff_df <- bind_rows(mh_same_vs_diff_df, df_)
+
+mh_same_vs_diff_df$type <- factor(mh_same_vs_diff_df$type, levels=c("Different Patient",
+                                                                             "Same Patient Different Metastasis",
+                                                                             "Same Patient Same Metastasis"))
+
+my_comparisons <- list( c('Same Patient Same Metastasis', 'Different Patient'),
+                        c('Same Patient Different Metastasis', 'Same Patient Same Metastasis'), 
+                        c('Same Patient Different Metastasis', 'Different Patient')
+                      )
+
+p <- ggboxplot(mh_same_vs_diff_df, x='type', y='mh_val',
+               fill='type', palette=c("#00AFBB", "#E7B800", "#FC4E07"),#'jam',
+               add='jitter') + theme(legend.position='none')# +
+ # ylim(c(0, 1.2)))
+
+p <- p + stat_compare_means(comparisons = my_comparisons, method='t.test', label.y=c(1,1.15, .85)) +
+  scale_y_continuous(name="MH-Index", limits=c(0, 1.2), breaks=seq(0, 1, .25)) + xlab("") + 
+  theme(axis.text.x = element_text(size=9,
+        vjust = grid::unit(c(-2, 0, -2), "points")))
+
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/morisita_horn.pdf',
+       plot=p,
+       width=5, height=4)
+p
+```
+
+```{r}
+print(paste("Mean Same Patient Same Metastasis: ", round(mh_same_vs_diff_df %>% filter(type=='Same Patient Same Metastasis') %>% pull(mh_val) %>% mean(),2)))
+print(paste("Min Same Patient Same Metastasis: ", round(mh_same_vs_diff_df %>% filter(type=='Same Patient Same Metastasis') %>% pull(mh_val) %>% min(),2)))
+print(paste("Max Same Patient Same Metastasis: ", round(mh_same_vs_diff_df %>% filter(type=='Same Patient Same Metastasis') %>% pull(mh_val) %>% max(),2)))
+
+print(paste("Mean Same Patient Different Metastasis: ", round(mh_same_vs_diff_df %>% filter(type=='Same Patient Different Metastasis') %>% pull(mh_val) %>% mean(),2)))
+print(paste("Mean Min Patient Different Metastasis: ", round(mh_same_vs_diff_df %>% filter(type=='Same Patient Different Metastasis') %>% pull(mh_val) %>% min(),2)))
+print(paste("Mean Max Patient Different Metastasis: ", round(mh_same_vs_diff_df %>% filter(type=='Same Patient Different Metastasis') %>% pull(mh_val) %>% max(),2)))
+
+print(paste("Mean Different Patient: ", round(mh_same_vs_diff_df %>% filter(type=='Different Patient') %>% pull(mh_val) %>% mean(),10)))
+print(paste("Min Different Patient: ", round(mh_same_vs_diff_df %>% filter(type=='Different Patient') %>% pull(mh_val) %>% min(),5)))
+print(paste("Max Different Patient: ", round(mh_same_vs_diff_df %>% filter(type=='Different Patient') %>% pull(mh_val) %>% max(),5)))
+
+```
+
+```{r message = FALSE}
+graph_param_random <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/graph_params_random_public.tsv')
+df <- as.data.frame(graph_param_random %>% dplyr::select(-one_of('COMET_ID', 'COMET_ID_nr', 'group', 'Kit_ID',
+                                                                 'ld', 'group_code', 'ID')) %>% drop_na())
+rownames(df) <- df$sample
+df$sample <- NULL
+df <- mutate_all(df, function(x) as.numeric(as.character(x)))
+df['Sample'] <- rownames(df)
+df <- left_join(df, metadata %>% dplyr::select(Sample, group))
+df <- df %>% filter(group != 'na')
+
+graph_param_random <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/graph_params_random_private.tsv')
+df2 <- as.data.frame(graph_param_random %>% dplyr::select(-one_of('COMET_ID', 'COMET_ID_nr', 'group', 'Kit_ID',
+                                                                 'ld', 'group_code', 'ID')))# %>% drop_na())
+rownames(df2) <- df2$sample
+df2$sample <- NULL
+df2 <- mutate_all(df2, function(x) as.numeric(as.character(x)))
+df2['Sample'] <- rownames(df2)
+df2 <- left_join(df2, metadata %>% dplyr::select(Sample, group))
+df2 <- df2 %>% filter(group != 'na')
+
+
+df <- df[, 1:19] %>% pivot_longer(!Sample, names_to='parameter', values_to = "value")
+df['private_public'] <- 'Public'
+df2 <- df2[, 1:19] %>% pivot_longer(!Sample, names_to='parameter', values_to = "value")
+df2['private_public'] <- 'Private'
+df <- bind_rows(df, df2)
+df <- df %>% left_join(coverage, by=c("Sample"="sample_id"))
+df <- df %>% filter(Coverage >= 5)
+df
+```
+
+```{r}
+
+comparison <- df %>% filter(parameter == 'n_edges')
+
+
+my_comparisons <- list(c('Private', 'Public'))
+
+p <- ggboxplot(comparison, x='private_public', y='value',
+               color='private_public', palette='jama',
+               add='jitter') + theme(legend.position='none')
+
+p <- p + stat_compare_means(comparisons = my_comparisons, method='t.test') +
+  ylab("Number of Connections (Edges)") + xlab("")
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/connectivity_public_vs_private.pdf',
+       plot=p,
+       width=4, height=5)
+p
+```
+```{r}
+print(paste("Nr Public:", df %>% filter(parameter=='n_edges') %>% filter(private_public == "Public") %>% pull(Sample) %>% length()))
+```
+```{r}
+print(paste("Nr Private:", df %>% filter(parameter=='n_edges') %>% filter(private_public == "Public") %>% pull(Sample) %>% length()))
+```
+```{r}
+top_10perc_mcpas <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/top_public_connected_rear/top_10perc_mcpas_hits.tsv')
+top_10perc_mcpas <- top_10perc_mcpas %>% rename("sample_name" = "...1")
+top_10perc_mcpas <- top_10perc_mcpas %>%
+  pivot_longer(-sample_name, names_to='group', values_to='Fraction McPAS hits') %>%
+  mutate(group = case_when(
+    group == 'nr_private_hits' ~ 'Top 10% most\nexpanded clones',
+    group == 'nr_public_hits' ~ 'Top 10% clones by\nconnectivity and\nsharing level'
+  )) %>%
+  mutate(group = factor(group, levels=c('Top 10% clones by\nconnectivity and\nsharing level',
+                                        'Top 10% most\nexpanded clones'))) %>%
+  mutate(`Fraction McPAS hits`=`Fraction McPAS hits`*100)
+
+comparison <- top_10perc_mcpas
+
+my_comparisons <- list(c('Top 10% most\nexpanded clones', 'Top 10% clones by\nconnectivity and\nsharing level'))
+
+p <- ggboxplot(comparison, x='group', y='Fraction McPAS hits',
+               color='group', palette="nejm",
+               add='jitter') + theme(legend.position='none')
+
+p <- p + stat_compare_means(comparisons = my_comparisons, method='t.test', paired=TRUE) +
+  ylab("Fraction CDR3 amino acid hits to McPAS database") + xlab("")
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/mcpas_hits_most_clonal_vs_most_connected_and_public.pdf',
+       plot=p,
+       width=4, height=5)
+p
+```
+
+
+
+```{r}
+public_fraction <- comparison %>% filter(group == "Top 10% clones by\nconnectivity and\nsharing level") 
+print(paste("Mean Top 10% clones by connectivity and sharing level connectivity:", public_fraction %>% pull(`Fraction McPAS hits`) %>% mean())) #%>% round(0) / 10))
+print(paste("Lower CI Top 10% clones by connectivity and sharing level connectivity:", public_fraction %>% pull(`Fraction McPAS hits`) %>% lower())) #%>% round(0) / 10))
+print(paste("Upper CI Top 10% clones by connectivity and sharing level connectivity:", public_fraction %>% pull(`Fraction McPAS hits`) %>% upper())) #%>% round(0) / 10))
+
+private_fraction <- comparison %>% filter(group == "Top 10% most\nexpanded clones") 
+print(paste("Mean Top 10% most expanded clones connectivity:", private_fraction %>% pull(`Fraction McPAS hits`) %>% mean())) #%>% round(0) / 10))
+print(paste("Lower CI Top 10% most expanded clones connectivity:", private_fraction %>% pull(`Fraction McPAS hits`) %>% lower())) #%>% round(0) / 10))
+print(paste("Upper CI Top 10% most expanded clones connectivity:", private_fraction %>% pull(`Fraction McPAS hits`) %>% upper())) #%>% round(0) / 10))
+
+```
+
+
+
+```{r message = FALSE}
+meta <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data/metadata.txt')
+meta
+```
+
+
+```{r message = FALSE}
+df2 <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/imnet_output/powerlaw.tsv')
+
+same_patient <- c(
+  'LivMet_38', 'LivMet_11', 'LivMet_14', 'LivMet_17',
+  'LivMet_40', 'LivMet_42', 'LivMet_33'
+) 
+
+
+df2 <- df2 %>% filter(!Sample %in% same_patient) %>% left_join(coverage, by=c("Sample" = "sample_id")) %>% filter(Coverage >= 5) %>%
+  filter(Sample != "LivMet_21")
+
+p <- df2 %>%
+  filter(group != 'na') %>%
+  mutate(group = fct_relevel(group,
+                            'no_chemo', 'short_chemo', 'long_chemo')) %>%
+  mutate(group = case_when(group == "no_chemo" ~ "No-NACT",
+                           group == "short_chemo" ~ "Short-interval",
+                           group == "long_chemo" ~ "Long-interval")) %>% 
+  mutate(group = fct_relevel(group, "No-NACT", "Short-interval", "Long-interval")) %>%
+  ggplot(aes(x=group, y=p_val, fill=group), color='black') +
+  geom_quasirandom(pch=21, size=3) +
+  geom_hline(yintercept=.1, linetype='dashed', color='black') +
+  scale_y_continuous(breaks=seq(0,1,.1), limits = c(0,1)) +
+  theme_minimal() +
+  theme(legend.position="none") +
+ # scale_fill_manual(values = wes_palette(n=3, name="GrandBudapest1")) +
+  ylab("P-value") + xlab("")
+p <- set_palette(p, "jco")
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/powerlaw.pdf',
+       plot=p,
+       width=5, height=5)
+p
+```
+
+
+
+Datasets that passed the power law goodness of fit test
+```{r}
+df2 %>% left_join(hill_auc) %>% filter(p_val > 0.1)
+```
+
+
+```{r message = FALSE}
+df2 %>% left_join(hill_auc) %>% filter(p_val > 0.1) %>% pull(Clonality) %>% mean() %>% round(1)
+
+```
+
+```{r message = FALSE}
+df2 %>% left_join(hill_auc) %>% filter(p_val >= 0.0) %>% drop_na() %>% pull(Clonality) %>% mean() %>% round(1)
+
+```
+
+```{r message = FALSE}
+global_param_subset <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/global_param_subset.tsv')
+global_param_subset['Sample'] <- global_param_subset['...1']
+global_param_subset['...1'] <- NULL
+global_param_subset
+global_param_subset <- global_param_subset %>% left_join(metadata) %>% left_join(coverage, by=c("Sample"="sample_id"))
+global_param_subset <- global_param_subset %>% filter(Coverage > 5)
+global_param_subset['connectivity_fraction'] <- global_param_subset$number_edges / global_param_subset$nr_nodes
+global_param_subset
+```
+Mean nr nodes
+```{r}
+print(paste("Mean number of nodes:", round(mean(global_param_subset$nr_nodes), 0)))
+print(paste("Lower CI of nodes:   ", round(lower(global_param_subset$nr_nodes), 0)))
+print(paste("Upper CI of nodes:   ", round(upper(global_param_subset$nr_nodes), 0)))
+
+```
+
+Mean nr edges
+```{r}
+print(paste("Mean number of edges:", round(mean(global_param_subset$number_edges), 0)))
+print(paste("Lower CI of edges:   ", round(lower(global_param_subset$number_edges), 0)))
+print(paste("Upper CI of edges:   ", round(upper(global_param_subset$number_edges), 0)))
+
+```
+
+Mean connectivity fraction
+```{r}
+print(paste("Mean connectivity:", round(mean(global_param_subset$connectivity_fraction), 4)))
+print(paste("Lower CI of connectivity:   ", round(lower(global_param_subset$connectivity_fraction), 4)))
+print(paste("Upper CI of connectivity:   ", round(upper(global_param_subset$connectivity_fraction), 4)))
+
+```
+
+
+
+
+```{r message = FALSE}
+degree_share = read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/degree_share.tsv')
+
+degree_share <- degree_share %>% arrange(share_level)
+degree_share$share_level[degree_share$share_level == 0] <- 1
+degree_share
+```
+
+
+
+
+```{r}
+p <- degree_share %>%
+  ggplot(aes(share_level, degree)) + 
+  stat_summary(fun = mean, geom = 'bar', fill='darkgrey') +
+  stat_summary(fun.data = "mean_cl_normal", 
+               geom = 'errorbar',
+               width = .4) +
+  theme_classic() +
+  xlab("Number of patients") + ylab("Clonal connections (Degrees)") +
+  scale_x_continuous(breaks=c(1, 10, 20, 30, 40, 50))
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/degree_to_sharing.pdf',
+       plot=p,
+       width=6, height=4)
+p
+```
+
+
+```{r message = FALSE}
+
+connectivity_to_nodes <- read_tsv("/Users/eirikhoy/Dropbox/projects/airr_comet/data/connectivity_fraction_to_nr_nodes.tsv")[, 2:3]
+attach(connectivity_to_nodes)
+lm.fit <- lm(fraction ~ nr_nodes, data=connectivity_to_nodes)
+summary(lm.fit)
+confint(lm.fit, level=0.95)
+```
+
+```{r}
+p <- connectivity_to_nodes %>%
+  ggplot(aes(x=nr_nodes, y=fraction)) +
+  geom_point() +
+  theme_minimal() +
+  ylab("Fraction connections to clones") + xlab("Number of clones (nodes)") +
+  geom_smooth(method = 'lm', se=TRUE, level=.95, color='red')
+
+ggsave(filename='/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/connectivity_to_nodes.pdf',
+       plot=p,
+       width=6, height=5)
+
+p
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+```{r}
+library(tidyverse)
+
+```
+
+```{r}
+survivial_data <- read_delim("/Users/eirikhoy/Dropbox/projects/airr_comet/data/metadata/survival_data.csv", delim=';')
+evenness_AUC <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/evenness_auc.tsv')
+evenness_AUC <- evenness_AUC %>% dplyr::select(Sample, Evenenss_AUC, AUC_group)
+evenness_AUC <- evenness_AUC %>% mutate(Clonality = case_when(AUC_group == 1 ~ 'High',
+                                          AUC_group == 2 ~ "Mid",
+                                          AUC_group == 3 ~ "Low"))
+survivial_data <- survivial_data %>% left_join(evenness_AUC)
+survivial_data$Clonality <- as.factor(survivial_data$Clonality)
+attach(survivial_data)
+
+```
+
+```{r}
+table(status)
+table(Clonality)
+```
+
+### Overall survival
+
+```{r}
+library(survival)
+fit.surv <- survfit(Surv(survival, status) ~ 1)
+plot(fit.surv, xlab = "Months", 
+     ylab = "Estimated Probability of Survival")
+```
+
+### Comparison Survival ~ clonality all levels
+
+```{r}
+Clonality <- as.factor(Clonality)
+fit.clonal <- survfit(Surv(survival, status) ~ Clonality)
+plot(fit.clonal, xlab = "Months",
+     ylab = "Estimated Probability of Survival", col = c(2,3,4))
+legend("bottomleft", levels(Clonality), col = c(2,3, 4), lty = 1)
+```
+
+```{r}
+logrank.test <- survdiff(Surv(survival, status) ~ Clonality)
+logrank.test
+```
+
+```{r}
+fit.cox <- coxph(Surv(survival, status) ~ Clonality)
+summary(fit.cox)
+```
+
+```{r}
+summary(fit.cox)$logtest[1]
+```
+
+```{r}
+summary(fit.cox)$waldtest[1]
+```
+
+```{r}
+summary(fit.cox)$sctest[1]
+```
+
+
+### Comparison Survival ~ Clonality only high versus low
+
+
+```{r}
+subset <- (Clonality != "Mid")
+Clonality <- as.factor(Clonality[])
+fit.clonal <- survfit(Surv(survival, status) ~ Clonality, 
+                      subset = subset)
+plot(fit.clonal, xlab = "Months",
+     ylab = "Estimated Probability of Survival", col = c(2,4))
+legend("bottomleft", levels(factor(c("High", "Low"), levels=c("High", "Low"))), col = c(2,4), lty = 1)
+```
+
+```{r}
+subset <- (Clonality != "Mid")
+logrank.test <- survdiff(Surv(survival, status) ~ Clonality, 
+                         subset=subset)
+logrank.test
+```
+
+```{r}
+subset <- (Clonality != "Mid")
+fit.cox <- coxph(Surv(survival, status) ~ Clonality,
+                 subset=subset)
+summary(fit.cox)
+```
+
+
+```{r}
+summary(fit.cox)$logtest[1]
+```
+
+```{r}
+summary(fit.cox)$waldtest[1]
+```
+
+```{r}
+summary(fit.cox)$sctest[1]
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
