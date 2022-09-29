@@ -1,4 +1,4 @@
-Analysis Pipeline for the paper "T cell receptor repertoire sequencing reveals chemotherapy-driven clonal expansion in colorectal liver metastases" by Høye et al.
+Github repository for the paper "T cell receptor repertoire sequencing reveals chemotherapy-driven clonal expansion in colorectal liver metastases" by Høye et al.
 
 Adaptive ImmunoSEQ rearrangement files can be downloaded from:  
 clients.adaptivebiotech.com  
