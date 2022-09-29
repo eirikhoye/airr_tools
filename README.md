@@ -1,4 +1,4 @@
-Analysis Pipeline for the paper "T cell receptor repertoire sequencing reveals chemotherapy-driven clonal expansion in colorectal liver metastases"![image](https://user-images.githubusercontent.com/7536041/192977709-63aee4d9-29e2-44b1-86e3-be62d997dd04.png)
+Analysis Pipeline for the paper "T cell receptor repertoire sequencing reveals chemotherapy-driven clonal expansion in colorectal liver metastases"
 
 
 
