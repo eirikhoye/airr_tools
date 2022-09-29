@@ -1,4 +1,4 @@
-Analysis Pipeline for the paper "T cell receptor repertoire sequencing reveals chemotherapy-driven clonal expansion in colorectal liver metastases"
+Analysis Pipeline for the paper "T cell receptor repertoire sequencing reveals chemotherapy-driven clonal expansion in colorectal liver metastases" by Høye et al.
 
 Adaptive ImmunoSEQ rearrangement files can be downloaded from:  
 clients.adaptivebiotech.com  
@@ -7,10 +7,10 @@ password: hoye2022review
 
 As well as from:
 
+https://drive.google.com/drive/folders/1K0XESt0sMMNieD-YYv9GmFOOPs2PtHqB?usp=sharing
 
 
-
-
+To set up imnet for network analysis, do:
 ```
 # First create venv with 
 virtualenv -p /usr/bin/python3.6 venv
