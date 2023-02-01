@@ -28,13 +28,10 @@ metadata <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch
 Rearrangement_all <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/rearrangement_details_kit_376276/RearrangementDetails_06-25-2019_12-33-29_AM.tsv')
 Rearrangement_all <- Rearrangement_all %>% dplyr::select(sample_name, amino_acid, templates, productive_frequency) %>% dplyr::rename('sample_id'=sample_name, 'clone_id'=amino_acid, 'seq_count'=templates, 'seq_freq'=productive_frequency)
 kit1 <- merge(metadata, Rearrangement_all, by.x = 'Sample', by.y = 'sample_id')
-#kit1 <- kit1 %>% dplyr::select(!group_code)
 
-#metadata <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data_12511620/metadata.txt')
 Rearrangement_all <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/rearrangement_details_kit_12511620/RearrangementDetails_07-20-2020_10-27-21_AM.tsv')
 Rearrangement_all <- Rearrangement_all %>% dplyr::select(sample_name, amino_acid, templates, productive_frequency) %>% dplyr::rename('sample_id'=sample_name, 'clone_id'=amino_acid, 'seq_count'=templates, 'seq_freq'=productive_frequency)
 kit2 <- merge(metadata, Rearrangement_all, by.x = 'Sample', by.y = 'sample_id')
-#kit2 <- kit2 %>% dplyr::select(!group_code)
 Rearrangement_all <- bind_rows(kit1, kit2)
 head(Rearrangement_all)
 ```
@@ -43,6 +40,7 @@ head(Rearrangement_all)
 Make plot for T cell fraction
 
 ```{r message = FALSE}
+# Concatenate sequence metadata from all samples and calculate T cell fraction
 a <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/metadata/SampleOverview_Kit_376276.tsv')
 a <- a[, c('sample_name', 'ng/uL')]
 b <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/metadata/Overview_samples_kit_2_v2.tsv')
@@ -66,6 +64,7 @@ SampleOverview$`NACT-group` <- factor(SampleOverview$`NACT-group`, levels=c('No-
 ```
 
 ```{r message = FALSE}
+# Define samples from the same patient and discard duplicate for this analysis
 same_patient <- c(
   'LivMet_38', 'LivMet_11', 'LivMet_14', 'LivMet_17',
   'LivMet_40', 'LivMet_42', 'LivMet_33'
@@ -93,6 +92,7 @@ SampleOverview %>% filter(group %in% c('short_chemo', 'long_chemo'))
 ```
 
 ```{r message = FALSE}
+# Define function to calculate confidence interval
 get_CI_half_width <- function(x, prob) {
   n <- length(x)
   z_t <- qt(1 - (1 - prob) / 2, df = n - 1)
@@ -182,8 +182,9 @@ print(paste("Upper 95% CI: ", round(upper(fraction), 3)))
 paste("Median fraction:", round(median(fraction), 3))
 
 ```
-                theme(axis.text.x = element_text(angle=60, hjust=1)
+
 ```{r}
+# Plot comparison of T cell fraction between no-NACT, short-interval and long-interval.
 my_comparisons <- list(c('No-NACT', 'Short-interval'), 
                        c('No-NACT', 'Long-interval'),
                        c('Short-interval', 'Long-interval'))
@@ -192,11 +193,9 @@ p <- ggviolin(SampleOverview, x='NACT-group', y='tcell_fraction',
                color='NACT-group', palette='jco',
                add='dotplot', scale='count')
 
-
 p <- p + stat_compare_means(comparisons = my_comparisons, method='t.test',label.y=c(.45,.75, .6)) +
   ylab("T cell fraction") + theme_minimal() + 
   theme(legend.position='none', axis.text.x = element_text(angle=60, hjust=1))
-
 
 ggsave(filename = '/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/tcr_seq_t_fraction.pdf',
        plot = p, width=4, height=5)
@@ -218,12 +217,14 @@ print(paste("Max unique clones:",SampleOverview$productive_rearrangements %>% ma
 
 # Metadata
 ```{r message = FALSE}
+# Reload metadata for downstream analysis
 metadata <- bind_rows(read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data_376276/metadata_v2.txt') %>% dplyr::select(!group_code),
           read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/immunarch_data_12511620/metadata_v2.txt') %>% dplyr::select(!group_code))
 
 ```
 
 ```{r message = FALSE}
+# Load qc reports and define a sequencing coverage dataframe
 kit_1_qc <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/qc_reports/qcReport_kit_1.tsv')
 kit_2_qc <- read_tsv('/Users/eirikhoy/Dropbox/projects/airr_comet/data/qc_reports/qcReport_kit_2.tsv')
 
@@ -242,14 +243,12 @@ list_of_files <- list.files(path = path,
                             pattern = "\\.tsv$",
                             full.names = TRUE)
 
+# Load hill diversity profiles generated with changeo package
 df <- readr::read_tsv(list_of_files)
 df <- df %>% left_join(metadata[, c("Sample", "COMET_ID")], by=c("sample_id"="Sample")) %>%
   left_join(coverage)
 
-
-
-### new analysis, exclude coverage < 5 and patient duplicates
-
+# Exclude coverage < 5 and patient duplicates
 duplicate_samples <- c('LivMet_38', 'LivMet_11', 'LivMet_14', 'LivMet_17',
                        'LivMet_40', 'LivMet_42', 'LivMet_33')
 
@@ -264,6 +263,7 @@ print(paste("Number of samples after selecting for coverage >= 5:", nr_samples))
 ```
 
 ```{r}
+# Define annotations and functions required for unsupervised clustering and heatmaps
 annotation <- metadata %>% 
   filter(group != 'na') %>%
   dplyr::select(COMET_ID, group) %>%
@@ -303,7 +303,7 @@ cl_cb <- function(hcl, mat){
 
 
 ```{r}
-
+# Plot heatmap of diversity profiles v1
 diversity_profile_breaks <- quantile_breaks(diversity_profile, n = 10)
 
 pheatmap(diversity_profile, 
@@ -321,6 +321,8 @@ pheatmap(diversity_profile,
 ```
 
 ```{r}
+# Plot heatmap of diversity profiles v2
+
 diversity_profile_breaks <- quantile_breaks(cor(diversity_profile), n = 10)
 
 pheatmap(cor(diversity_profile), 
@@ -342,6 +344,8 @@ pheatmap(cor(diversity_profile),
 ```
 
 ```{r}
+# Plot heatmap of diversity profiles v3
+
 # reorder clusters according to OLO method
 
 out <- pheatmap(cor(diversity_profile), 
@@ -370,6 +374,7 @@ out <- pheatmap(cor(diversity_profile),
 
 # dendrogram with cutoff at h=2.5
 ```{r}
+# Plot dendrogram of diversity profile clustering
 height = 2.5
 
 plot(out$tree_col)
@@ -383,12 +388,11 @@ d = tibble(
 )
 t <- d %>% merge(metadata, by.x='COMET_ID', by.y='COMET_ID') %>% dplyr::select(group, cluster)# %>% filter(cluster != 6)
 write_tsv(d %>% left_join(metadata %>% dplyr::select(c(Sample, COMET_ID)), by='COMET_ID'), file='/Users/eirikhoy/dropbox/Manuscript_ImmunoSEQ_COMET/supplementary_files/results/hill_even_clust_dist_3.tsv')
-#t$group[t$group == 'long_chemo'] <- 'yes'
-#t$group[t$group == 'short_chemo'] <- 'yes'
-#t$group[t$group == 'no_chemo'] <- 'no'
 ```
+
 # Fisher's Exact Test for Count Data
 ```{r}
+# Compare significance of clustering and chemo group
 t <- table(t)
 print(t)
 #chisq <- chisq.test(t, simulate.p.value = FALSE, B=10000)
@@ -398,6 +402,8 @@ print(fish)
 ```
 
 ```{r message = FALSE}
+# Make a dataframe for diversity profiles
+
 get_CI_half_width <- function(x, prob) {
   n <- length(x)
   z_t <- qt(1 - (1 - prob) / 2, df = n - 1)
@@ -436,6 +442,7 @@ df_hill <- bind_rows(bind_rows(no_chemo_, short_chemo_), long_chemo_) %>%
 ```
 
 ```{r}
+# Plot diversity profiles
 p1 <- df_hill %>%
   mutate(`NACT-group` = case_when(
     group == 'no_chemo' ~ 'No-NACT',
@@ -515,6 +522,7 @@ p2
 ```
 
 ```{r}
+# Plot both Hill diversity and evenness
 leg <- get_legend(p1)
 p3 <- ggarrange(p1, p2, ncol=2, nrow=1,
           legend.grob = leg, 
@@ -526,7 +534,7 @@ ggsave(filename = '/Users/eirikhoy/Dropbox/Manuscript_ImmunoSEQ_COMET/figures/hi
 ### Comparison of Evenness profiles and AUC
 
 ```{r}
-
+# Create a dataframe of area under the curve values for each evenness profile
 samples <- unique(df$COMET_ID)
 
 hill_auc <- matrix(ncol=1, nrow=0)
@@ -623,8 +631,8 @@ p + stat_compare_means(comparisons = my_comparisons, method='t.test') +
 ```
 
 ```{r}
+# Plot difference in clonality for no-NACT, short-NACT and long-NACT
 library(ggpubr)
-
 
 my_comparisons <- list(c('No-NACT', 'Short-interval'), 
                        c('No-NACT', 'Long-interval'),
