@@ -45,5 +45,6 @@ hill_div directory contains tsv files output from the Hill_Diversity_v2.R script
 envs directory contain yaml files for conda virtual environments needed to run scripts. Also needed for snakemake rules.
 
 scripts directory contain the scripts neccessary for some precursor steps in the analysis. 
-- Hill_Diversity_v2.R is used to make Hill diversity and evenness profiles. Script intended to be used with snakemake.
-- Hill_Rarefy
+- Hill_Diversity.R is used to make Hill diversity and evenness profiles. Script part of snakemake rule.
+- concat_Hill.R, cleans up diversity and evenness output into tidy dataframe.
+
