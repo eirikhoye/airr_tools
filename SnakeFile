@@ -25,18 +25,6 @@ rule hill_div:
     script:
         'scripts/Hill_Diversity_v2.R'
 
-rule rarefy_hill:
-    input:
-        meta=path_data+'metadata.txt',
-        rear=path_data+'{sample}.tsv'
-    output:
-        hill_div=path_results+'/rarefy_hill/{sample}_rareHill.tsv'
-    conda:
-        'envs/Hill_Div.yaml'
-    script:
-        'scripts/Hill_Rarefy.R'
-
-
 rule concat_hill:
     input:
         in_path=expand(path_results+"/hill_div/{sample}_hill.tsv", sample=samples),
