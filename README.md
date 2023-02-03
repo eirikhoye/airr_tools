@@ -55,6 +55,26 @@ scripts/
 
 To generate hill diversity profiles, edit the config.yaml file to contain the appropriate paths.
 
-In the data folder, 
+Because generating diversity profiles can be a bit time consuming, it is a good idea to run them through the snakemake workflow script, so each file only has to be run once, regardless of whether additional files are added.
 
+First, ensure that the rearrangement files are organized to one file per sample in the data/rearrangements directory. If you have all rearrangements merged into a single file, you can unmerge them in the same directory using: 
+```
+python scripts/Rearrangement_to_single_files.py </path/to/rearrangements_dir/> <rearrangements_filename.tsv>
+```
+
+To run the snakemake script, first install and activate a conda environment containing snakemake library, then use the following command:
+```
+# Install snakemake, follow:
+# https://snakemake.readthedocs.io/en/stable/getting_started/installation.html
+
+conda activate base
+mamba create -c conda-forge -c bioconda -n snakemake snakemake
+conda activate snakemake
+
+# Then, in the same directory as the SnakeMake file, run
+snakemake -j<number of cores> --configfile <path to config.yaml> --use-conda
+
+# This will run the snakemake rules to generate diversity and evenness profiles in the results/<project_name> folder, and also concatenate them into a single tidy dataframe, as well as a dataframe with auc derived clonality values for each sample.
+
+```
 
