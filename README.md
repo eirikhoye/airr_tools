@@ -71,8 +71,10 @@ conda activate base
 mamba create -c conda-forge -c bioconda -n snakemake snakemake
 conda activate snakemake
 
-# Then, in the same directory as the SnakeMake file, run
+# Then, in the same directory as the SnakeMake file, run:
 snakemake -j<number of cores> --configfile <path to config.yaml> --use-conda
+
+# Note, it is important that the .yaml files are present in the envs/ directory, so that the neccessary conda environments are present.
 
 # This will run the snakemake rules to generate diversity and evenness profiles in the results/<project_name> folder, and also concatenate them into a single tidy dataframe, as well as a dataframe with auc derived clonality values for each sample, which are easy to work with.
 
