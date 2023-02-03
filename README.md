@@ -51,6 +51,10 @@ scripts/
 - Hill_Diversity.R is used to make Hill diversity and evenness profiles. Script part of snakemake rule.
 - concat_Hill.R, cleans up diversity and evenness output into tidy dataframe.
 
-
-
 ```
+
+To generate hill diversity profiles, edit the config.yaml file to contain the appropriate paths.
+
+In the data folder, 
+
+
