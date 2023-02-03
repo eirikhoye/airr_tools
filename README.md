@@ -153,6 +153,7 @@ ggsave(filename = '/path/to/hill_div_even.pdf',
 ![Image](figures/hill_div_even.png) 
 
 
+These plots provide a detailed view of the clonal frequency distribution of a T cell receptor repertoire. At low values of q (x-axis), the diversity curve is mainly influenced the absolute number of unique clones, while at higher values, diversity is primarily influenced by the most prevalent clones. Another way to interpret the curves is that, while the left part reflects the absolute number of unique clones, the further and more rapidly the curve drops at increasing values of q, the more skewed the clonal frequency distripution is in favour of a small number of very abundant clones. The evenness profile on the right is normalized by the total number of clones.
 
 
 
@@ -165,8 +166,7 @@ ggsave(filename = '/path/to/hill_div_even.pdf',
 
 
 
-
-
+For generating levenshtein distance based graphs from the clonal sequences in a repertoire, it is best to use imnet, which paralelizes the job. The memory required to create sequential levenshtein distance matrixes scales exponentially, therefore analyzing networks from greater than 10000 sequences can be difficult without paralellization. 
 
 To set up imnet for network analysis, do:
 ```
@@ -188,3 +188,5 @@ export PYSPARK_DRIVER_PYTHON=/home/jcdenton/imnet/venv/bin/python3.6
 # run the test
 pyhton test_imnet.py
 ```
+
+
