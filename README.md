@@ -33,18 +33,24 @@ pyhton test_imnet.py
 
 
 Overview of files required for the R_markdown analysis.
-
-Data directory:
+```
+data/
 - SampleOverview_10-11-2021_1-47-39_PM.tsv: Sequencing parameters for all samples, including sequencing bathc 376276 and 12511620, downloaded from the immunoSEQ ANALYZER SampleOverview page. Loaded on line 57 in the markdown
 - qcReport_kit_1.tsv: QC report from sequencing batch 376276, downloaded from immunoSEQ ANALYZER v2, samples with sequencing coverage < 5 where excluded from clonality analysis. Loaded on line 227 in the markdown
 - qcReport_kit_2.tsv: QC report from sequencing batch 12511620, downloaded from immunoSEQ ANALYZER v2, samples with sequencing coverage < 5 where excluded from clonality analysis. Loaded on line 228 in the markdown
 - metadata_all_v2.txt: metadata including COMET_ID and NACT group for all datasets. Loaded on line 60 of the markdown
 
-hill_div directory contains tsv files output from the Hill_Diversity_v2.R script
+hill_div/ 
+- directory contains tsv files output from the Hill_Diversity_v2.R script
 
-envs directory contain yaml files for conda virtual environments needed to run scripts. Also needed for snakemake rules.
+envs/
+- contain yaml files for conda virtual environments needed to run scripts. Also needed for snakemake rules.
 
-scripts directory contain the scripts neccessary for some precursor steps in the analysis. 
+scripts/
+- contain the scripts neccessary for some precursor steps in the analysis. 
 - Hill_Diversity.R is used to make Hill diversity and evenness profiles. Script part of snakemake rule.
 - concat_Hill.R, cleans up diversity and evenness output into tidy dataframe.
 
+
+
+```
