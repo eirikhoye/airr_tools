@@ -55,9 +55,9 @@ scripts/
 
 To generate hill diversity profiles, edit the config.yaml file to contain the appropriate paths.
 
-Because generating diversity profiles can be a bit time consuming, it is a good idea to run them through the snakemake workflow script, so each file only has to be run once, regardless of whether additional files are added.
+Because generating diversity profiles can be annoying, it is a good idea to run them through the snakemake workflow script, so each sample only has to be run once, regardless of whether additional samples are added to the analysis.
 
-First, ensure that the rearrangement files are organized to one file per sample in the data/rearrangements directory. If you have all rearrangements merged into a single file, you can unmerge them in the same directory using: 
+First, ensure that the rearrangement files are organized as one file per sample in the data/rearrangements directory. If you have all rearrangements merged into a single file, you can unmerge them in the same directory using: 
 ```
 python scripts/Rearrangement_to_single_files.py </path/to/rearrangements_dir/> <rearrangements_filename.tsv>
 ```
