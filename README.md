@@ -58,7 +58,7 @@ snakemake -j<number of cores> --configfile <path to config.yaml> --use-conda
 
 ```
 
-The hill_all.tsv can be loaded in R, and ggplot2 can easily produce publication quality figures with the following code:
+The hill_<sample>.tsv files can be loaded in R, and ggplot2 can easily produce publication quality figures with the following code:
 
 ```
 library(tidyverse)
