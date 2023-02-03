@@ -65,7 +65,7 @@ The hill_all.tsv can be loaded in R, and ggplot2 can easily produce publication 
 
 ```
 
-![Screenshot]\(figures/hill_div_even.pdf) 
+![Image]\(figures/hill_div_even.pdf) 
 
 
 
