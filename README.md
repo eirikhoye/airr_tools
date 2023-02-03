@@ -74,7 +74,7 @@ conda activate snakemake
 # Then, in the same directory as the SnakeMake file, run
 snakemake -j<number of cores> --configfile <path to config.yaml> --use-conda
 
-# This will run the snakemake rules to generate diversity and evenness profiles in the results/<project_name> folder, and also concatenate them into a single tidy dataframe, as well as a dataframe with auc derived clonality values for each sample.
+# This will run the snakemake rules to generate diversity and evenness profiles in the results/<project_name> folder, and also concatenate them into a single tidy dataframe, as well as a dataframe with auc derived clonality values for each sample, which are easy to work with.
 
 ```
 
