@@ -1,7 +1,7 @@
 suppressPackageStartupMessages(library(alakazam))
 suppressPackageStartupMessages(library(tidyverse))
 
-#set paths
+# get paths from snakemake script
 meta_path <- snakemake@input[['meta']]
 file_path <- snakemake@input[['rear']]
 outfile <- snakemake@output[['hill_div']]
