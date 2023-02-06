@@ -88,7 +88,7 @@ export PYSPARK_PYTHON=/home/jcdenton/imnet/venv/bin/python3.6
 export PYSPARK_DRIVER_PYTHON=/home/jcdenton/imnet/venv/bin/python3.6
 
 # To create clonal sequence based graphs, use:
-pyhton scripts/run_imnet.py <path/to/rearrangement.tsv> <name_outfile}
+pyhton scripts/run_imnet.py <path/to/rearrangement.tsv> <name_outfile>
 ```
 
 This outputs graphs in the .graphml format. Graph visualization software such as gephi can be used to generate high quality visualizations of these networks:
