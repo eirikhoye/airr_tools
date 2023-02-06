@@ -1,6 +1,11 @@
 suppressPackageStartupMessages(library(alakazam))
 suppressPackageStartupMessages(library(tidyverse))
 
+"""
+Calculate Hill diversity and evenness profiles, 
+for command line 
+"""
+
 # get command line arguments
 args <- commandArgs(trailingOnly=TRUE)
 
