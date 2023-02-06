@@ -37,6 +37,10 @@ scripts/
 - Rearrangement_to_single_files.py  Split ImmunoSEQ rearrangement dataframe into individual files for each sequencing sample.
 - Some additional deprecated scripts kept for future reference, but not used in the analysis.
 
+R_markdowns/
+- Contains R markdowns used to generate figures used in the paper. Note this was the actual file used, 
+  some filepaths will have to be changed to your local directory structure.
+
 ```
 
 To generate hill diversity profiles, edit the config.yaml file to contain the appropriate paths.
