@@ -17,14 +17,9 @@ data/
 - SampleOverview.tsv  Contains sequencing metadata for each sample, and the amount of input gDNA.
 - metadata.xlsx       Clinical metadata relevant for the analysis. Also specifies which patient was sampled multiple times.
 - qcReport.tsv        Quality control report for each sample, including coverage. Coverage is average number of reads per rearranged DNA template. Samples with coverage < 5 were discarded from clonality analysis.
-- graph_params/       Directory of 
-
-
-
-SampleOverview_10-11-2021_1-47-39_PM.tsv: Sequencing parameters for all samples, including sequencing bathc 376276 and 12511620, downloaded from the immunoSEQ ANALYZER SampleOverview page. Loaded on line 57 in the markdown
-- qcReport_kit_1.tsv: QC report from sequencing batch 376276, downloaded from immunoSEQ ANALYZER v2, samples with sequencing coverage < 5 where excluded from clonality analysis. Loaded on line 227 in the markdown
-- qcReport_kit_2.tsv: QC report from sequencing batch 12511620, downloaded from immunoSEQ ANALYZER v2, samples with sequencing coverage < 5 where excluded from clonality analysis. Loaded on line 228 in the markdown
-- metadata_all_v2.txt: metadata including COMET_ID and NACT group for all datasets. Loaded on line 60 of the markdown
+- graph_params/       Directory with data related to graph parameters and analysis
+- graphs/             Directory with graphs generated with scripts/run_imnet.py
+- McPAS/              Directory containing the search results in McPAS, a repository of TCR sequences with known pathogen associations. 
 
 hill_div/ 
 - directory contains tsv files output from the Hill_Diversity_v2.R script
@@ -33,9 +28,14 @@ envs/
 - contain yaml files for conda virtual environments needed to run scripts. Also needed for snakemake rules.
 
 scripts/
-- contain the scripts neccessary for some precursor steps in the analysis. 
-- Hill_Diversity.R is used to make Hill diversity and evenness profiles. Script part of snakemake rule.
-- concat_Hill.R, cleans up diversity and evenness output into tidy dataframe.
+- Hill_Diversity_v2.R           R script for generating Hill Diversity and evenness profiles. Run with snakemake.
+- concat_Hill.R                 Concatenate diversity and evenness output into tidy dataframe. Run with snakemake.
+- run_imnet.py                  Create graphs from ImmunoSEQ rearrangement files in data/rearrangements.
+- powerlaw.R                    Script for calculating powerlaw fit from clonal degree distribution.
+- global_params.py              Calculate global graph parameters from .graphml file.
+- local_params.py               Calculate local graph parameters from .graphml file.
+- Rearrangement_to_single_files.py  Split ImmunoSEQ rearrangement dataframe into individual files for each sequencing sample.
+- Some additional deprecated scripts kept for future reference, but not used in the analysis.
 
 ```
 
