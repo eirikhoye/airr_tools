@@ -12,18 +12,20 @@ import networkx as nx
 Usage: python scripts/run_imnet.py {path/to/input.tsv} {name_outfile}
 """
 
-
 os.environ['SPARK_HOME'] = '/opt/spark/'
 sc = pyspark.SparkContext('local[*]')
 
 def run_imnet(file_path, out_path, min_ld=1, max_ld=1):
+    # Read rearrangement.tsv and pull amino acid sequences
     df = pd.read_csv(file_path, sep='\t')
     strings = list(df.amino_acid)
-
+    
+    # generate graph from amino acid strings using pyspark
     g = imnet.process_strings.generate_graph(strings, sc=sc, min_ld=1, max_ld=1)
     g.remove_edges_from(nx.selfloop_edges(g))   
     param_glob = {}
-
+    
+    # Write graph in a graphml file format
     nx.write_graphml(g, out_path+'.graphml')
     param_glob['Nodes(V)'] = g.number_of_nodes()
     param_glob['Edges(E)'] = g.number_of_edges()
@@ -31,18 +33,12 @@ def run_imnet(file_path, out_path, min_ld=1, max_ld=1):
     param_glob['max_k_core'] = len(nx.k_core(g, k=None, core_number=None).edges())
     param_glob['clique'] = nx.graph_clique_number(g)
     print(param_glob)
-
+    
+    # Write graph degree distribution
     degrees = imnet.process_strings.generate_degrees(strings, sc=sc, min_ld=min_ld, max_ld=max_ld)
     np.savetxt(out_path+'_degree.txt', degrees, fmt='%1i')
 
-
-
-    
-
-
+# Input needs to be Adaptive rearrangement style .tsv file, most important is that column containing clonal amino acid strings is named amino_acid
 run_imnet(sys.argv[1], sys.argv[2], min_ld=1, max_ld=1)
 
-
 sc.stop()
-
-
