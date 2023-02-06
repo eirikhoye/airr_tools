@@ -13,7 +13,15 @@ https://drive.google.com/drive/folders/1K0XESt0sMMNieD-YYv9GmFOOPs2PtHqB?usp=sha
 Overview of files required for the R_markdown analysis.
 ```
 data/
-- SampleOverview_10-11-2021_1-47-39_PM.tsv: Sequencing parameters for all samples, including sequencing bathc 376276 and 12511620, downloaded from the immunoSEQ ANALYZER SampleOverview page. Loaded on line 57 in the markdown
+- rearrangements/     Directory with adaptive ImmunoSEQ rearrangement .tsv files for each sample.
+- SampleOverview.tsv  Contains sequencing metadata for each sample, and the amount of input gDNA.
+- metadata.xlsx       Clinical metadata relevant for the analysis. Also specifies which patient was sampled multiple times.
+- qcReport.tsv        Quality control report for each sample, including coverage. Coverage is average number of reads per rearranged DNA template. Samples with coverage < 5 were discarded from clonality analysis.
+- connectivity_fraction_to_nr_nodes.tsv Number of network connections pers
+
+
+
+SampleOverview_10-11-2021_1-47-39_PM.tsv: Sequencing parameters for all samples, including sequencing bathc 376276 and 12511620, downloaded from the immunoSEQ ANALYZER SampleOverview page. Loaded on line 57 in the markdown
 - qcReport_kit_1.tsv: QC report from sequencing batch 376276, downloaded from immunoSEQ ANALYZER v2, samples with sequencing coverage < 5 where excluded from clonality analysis. Loaded on line 227 in the markdown
 - qcReport_kit_2.tsv: QC report from sequencing batch 12511620, downloaded from immunoSEQ ANALYZER v2, samples with sequencing coverage < 5 where excluded from clonality analysis. Loaded on line 228 in the markdown
 - metadata_all_v2.txt: metadata including COMET_ID and NACT group for all datasets. Loaded on line 60 of the markdown
