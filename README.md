@@ -10,7 +10,7 @@ As well as from:
 https://drive.google.com/drive/folders/1K0XESt0sMMNieD-YYv9GmFOOPs2PtHqB?usp=sharing
 
 
-Overview of files required for the R_markdown analysis.
+Overview of files in the repository.
 ```
 data/
 - rearrangements/     Directory with adaptive ImmunoSEQ rearrangement .tsv files for each sample.
