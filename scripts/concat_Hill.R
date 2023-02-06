@@ -1,5 +1,9 @@
 suppressPackageStartupMessages(library(tidyverse))
 
+"""
+Script for merging all Hill diversity and evenness profiles into one tidy dataframe
+"""
+
 #set paths
 hill_out <- snakemake@output[['hill_out']]
 auc_out <- snakemake@output[['auc_out']]
