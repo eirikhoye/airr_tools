@@ -2,7 +2,9 @@ library(tidyverse)
 
 """
 Use this script to plot hill diversity and evenness profiles from 
-Hill diversity and evenness profile files created with
+Hill diversity and evenness profile files created with:
+
+Hill_diversity_v2.R
 """
 
 # Load metadata with NACT interval
