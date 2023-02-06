@@ -42,10 +42,9 @@ R_markdowns/
   some filepaths will have to be changed to your local directory structure.
 
 ```
+Because generating diversity profiles can be annoying, it is a good idea to run them through the snakemake workflow script, so each sample only has to be run once, regardless of whether additional samples are added to the analysis.
 
 To generate hill diversity profiles, edit the config.yaml file to contain the appropriate paths.
-
-Because generating diversity profiles can be annoying, it is a good idea to run them through the snakemake workflow script, so each sample only has to be run once, regardless of whether additional samples are added to the analysis.
 
 First, ensure that the rearrangement files are organized as one file per sample in the data/rearrangements directory. If you have all rearrangements merged into a single file, you can unmerge them in the same directory using: 
 ```
