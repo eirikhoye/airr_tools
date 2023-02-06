@@ -42,7 +42,7 @@ R_markdowns/
   some filepaths will have to be changed to your local directory structure.
 
 ```
-Because generating diversity profiles can be annoying, it is a good idea to run them through the snakemake workflow script, so each sample only has to be run once, regardless of whether additional samples are added to the analysis.
+Because generating diversity profiles can be time consuming, it is a good idea to run them through the snakemake workflow script, so each sample only has to be run once, regardless of whether additional samples are added to the analysis.
 
 To generate hill diversity profiles, edit the config.yaml file to contain the appropriate paths.
 
