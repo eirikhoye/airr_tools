@@ -9,6 +9,13 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from matplotlib import cm
 
+"""
+Class for generating Levenshtein distance based graphs from TCR clonal 
+amino acid sequences, using igraph.
+
+Deprecated, no longer part of the analysis, kept for future reference.
+"""
+
 def zero_to_one(n):
     if n == 0:
         return 1.0
@@ -152,18 +159,4 @@ class RepertoireGraph:
     def powerlaw(self, ld, alt_model):
         results = powerlaw.Fit([i for i in self.degree_dist[[ld]] if i > 0])
         R, p = results.distribution_compare('power_law', alt_model)
-        return(R, p)
-        
-        
-        
-# # plot barchart of top rearranged clones
-#s = sample.head(10)
-#chart = sns.barplot(data=s, x='junction_aa', y='freqs')
-#for item in chart.get_xticklabels():
-#    item.set_rotation(90)
-#chart.set_title(str(Sample_ID))
-#plt.ylim(0, 0.12)
-#plt.plot()
-#plt.show()
-
-        
+        return(R, p)        
