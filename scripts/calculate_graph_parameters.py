@@ -60,3 +60,20 @@ for dataset in graph_dict:
                                axis=1)
 local_param = local_param.transpose()
 local_param.to_csv(path_or_buf='data/local_param.tsv', sep='\t')
+
+# Create dataframe for each clone with sharing level and degrees
+is_first = True
+for dataset in graph_dict:
+    if is_first:
+        degree_share = pd.DataFrame({
+            'degree' : graph_dict[dataset].indegree(),
+            'share_level' : graph_dict[dataset].vs['share_level']
+        })
+        is_first = False
+    else:
+        degree_share_ = pd.DataFrame({
+            'degree' : graph_dict[dataset].indegree(),
+            'share_level' : graph_dict[dataset].vs['share_level']
+        })
+        degree_share = pd.concat([degree_share, degree_share_])
+degree_share.to_csv(path_or_buf='data/degree_share.tsv', sep='\t', index=False)
