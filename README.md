@@ -17,7 +17,7 @@ data/
 - SampleOverview.tsv  Contains sequencing metadata for each sample, and the amount of input gDNA.
 - metadata.xlsx       Clinical metadata relevant for the analysis. Also specifies which patient was sampled multiple times.
 - qcReport.tsv        Quality control report for each sample, including coverage. Coverage is average number of reads per rearranged DNA template. Samples with coverage < 5 were discarded from clonality analysis.
-- connectivity_fraction_to_nr_nodes.tsv Number of network connections pers
+- graph_params/       Directory of 
 
 
 
