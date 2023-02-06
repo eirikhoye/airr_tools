@@ -30,7 +30,6 @@ def run_imnet(file_path, out_path, min_ld=1, max_ld=1):
     param_glob['LargestComponent'] = len(max(nx.connected_components(g), key=len))
     param_glob['max_k_core'] = len(nx.k_core(g, k=None, core_number=None).edges())
     param_glob['clique'] = nx.graph_clique_number(g)
- #   param_glob['diameter'] = nx.algorithms.distance_measures.diameter(g, e=None, usebounds=False)
     print(param_glob)
 
     degrees = imnet.process_strings.generate_degrees(strings, sc=sc, min_ld=min_ld, max_ld=max_ld)
