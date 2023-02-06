@@ -1,6 +1,11 @@
 suppressPackageStartupMessages(library(alakazam))
 suppressPackageStartupMessages(library(tidyverse))
 
+"""
+Calculate Hill diversity and evenness profiles, 
+for snakemake script
+"""
+
 # get paths from snakemake script
 meta_path <- snakemake@input[['meta']]
 file_path <- snakemake@input[['rear']]
