@@ -1,9 +1,14 @@
-# random sampling without replacement
-
 import pandas as pd
 import numpy as np
 import os
 import sys
+
+"""
+Script for calculating graph parameters from the full TCR repertoire.
+
+Deprecated, not part of the analysis, kept for future reference
+
+"""
 
 # Define sys args
 path = sys.argv[1]
@@ -47,7 +52,6 @@ airr_metadata.head()
 
 # Sampling without replacement
 df_sampled = {}
-
 for sample in df.keys():
     print('sampling ', sample)
     t = []
