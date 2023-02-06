@@ -1,6 +1,13 @@
 import pandas as pd
 import numpy as np
 
+"""
+Script for subsampling repertoire so that networks can be generated
+on equal sizes
+
+Deprecated, not part of the analysis, kept for future reference
+"""
+
 class imnet_graph:
     def __init__(self, immunoseq_data):
         self.immunoseq_data = immunoseq_data
@@ -9,12 +16,6 @@ class imnet_graph:
     def make_network(self, min_ld, max_ld):
         self.g = imnet.process_strings.generate_graph(self.seq_aa,
                                                       min_ld=min_ld, max_ld=max_ld)
-
-
-
-
-
-
 
     def subsample(self, immunoseq_data):
         t = []
@@ -34,15 +35,6 @@ class imnet_graph:
             if s.values[0][0] in s_t:
                 s_t[s.values[0][0]] += 1
             t = t.drop(s.index)
-
-
-
-
-
-
-
-
-
 
 # Define input paths with sys args
 sampling_nr = snakemake.input['']
