@@ -23,7 +23,7 @@ rule hill_div:
     conda:
         "envs/Hill_Div.yaml"
     script:
-        'scripts/Hill_Diversity.R'
+        'scripts/Hill_Diversity_v2.R'
 
 rule concat_hill:
     input:
