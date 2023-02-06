@@ -6,7 +6,7 @@ library(RColorBrewer)
 
 ################################################################################################
 
-                           # Get File Paths and load degree distribution
+               # Get File Paths for degree distribution and load degree distribution
 
 ################################################################################################
 
