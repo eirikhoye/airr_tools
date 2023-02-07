@@ -30,18 +30,22 @@ envs/
 - contain yaml files for conda virtual environments needed to run scripts. Also needed for snakemake rules.
 
 scripts/
-- Hill_Diversity_v2.R           R script for generating Hill Diversity and evenness profiles. Run with snakemake.
-- concat_Hill.R                 Concatenate diversity and evenness output into tidy dataframe. Run with snakemake.
-- run_imnet.py                  Create graphs from ImmunoSEQ rearrangement files in data/rearrangements.
-- powerlaw.R                    Script for calculating powerlaw fit from clonal degree distribution.
-- global_params.py              Calculate global graph parameters from .graphml file.
-- local_params.py               Calculate local graph parameters from .graphml file.
+- Hill_Diversity_v2.R  R script for generating Hill Diversity and evenness profiles. Run with snakemake.
+- concat_Hill.R        Concatenate diversity and evenness output into tidy dataframe. Run with snakemake.
+- run_imnet.py         Create graphs from ImmunoSEQ rearrangement files in data/rearrangements.
+- powerlaw.R           Script for calculating powerlaw fit from clonal degree distribution.
+- global_params.py     Calculate global graph parameters from .graphml file.
+- local_params.py      Calculate local graph parameters from .graphml file.
 - Rearrangement_to_single_files.py  Split ImmunoSEQ rearrangement dataframe into individual files for each sequencing sample.
 - Some additional deprecated scripts kept for future reference, but not used in the analysis.
 
 R_markdowns/
 - Contains R markdowns used to generate figures used in the paper. Note this was the actual file used, 
   some filepaths will have to be changed to your local directory structure.
+
+McPAS-TCR.csv         Database of TCR sequences with kown pathology associations.
+SnakeFile             Script with snakemake rules for generating Hill diversity profiles
+config.yaml           Config file for SnakeFile
 
 ```
 Because generating diversity profiles can be time consuming, it is a good idea to run them through a snakemake workflow script, so each sample only has to be run once, regardless of whether additional samples are added to the analysis.
