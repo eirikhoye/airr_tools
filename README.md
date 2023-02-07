@@ -102,6 +102,6 @@ export PYSPARK_DRIVER_PYTHON=/home/jcdenton/imnet/venv/bin/python3.6
 pyhton scripts/run_imnet.py <path/to/rearrangement.tsv> <name_outfile>
 ```
 
-This outputs graphs in the .graphml format. Graph visualization software such as gephi can be used to generate high quality visualizations of these networks:
+This outputs graphs in the .graphml format. Graph visualization software such as gephi can be used to generate visualizations of these networks:
 
 ![Image](figures/LD_graph.png) 
