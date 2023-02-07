@@ -1,4 +1,4 @@
-![Image](zenodo.7614598.svg) 
+![Image](figures/zenodo.7614598.svg) 
 
 Github repository for the paper "T cell receptor repertoire sequencing reveals chemotherapy-driven clonal expansion in colorectal liver metastases" by Høye et al.
 
