@@ -2,16 +2,6 @@
 
 Github repository for the paper "T cell receptor repertoire sequencing reveals chemotherapy-driven clonal expansion in colorectal liver metastases" by Høye et al.
 
-Adaptive ImmunoSEQ rearrangement files can be downloaded from:  
-clients.adaptivebiotech.com  
-email: hoye-review@adaptivebiotech.com  
-password: hoye2022review
-
-As well as from:
-
-https://drive.google.com/drive/folders/1K0XESt0sMMNieD-YYv9GmFOOPs2PtHqB?usp=sharing
-
-
 Overview of files in the repository.
 ```
 data/
